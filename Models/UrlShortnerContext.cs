@@ -11,6 +11,6 @@ namespace UrlShortnerApi.Models
         public UrlShortnerContext(DbContextOptions<UrlShortnerContext> options) : base(options)
         {}
 
-        public DbSet<LongUrl> LongUrls { get; set; }
+        public DbSet<ShortUrl> ShortUrls { get; set; }
     }
 }

@@ -2,13 +2,13 @@
 
 namespace UrlShortnerApi.Models
 {
-    public class LongUrl
+    public class ShortUrl
     {
         /// <summary>
         /// Id = \{Id} portion of short path
         /// </summary>
-        public string Id { get; set; }
-        public string Path { get; set; }
+        public string ShortUrlId { get; set; }
+        public string LongUrl { get; set; }
         public DateTime CreateDate { get; set; }
     }
 }
