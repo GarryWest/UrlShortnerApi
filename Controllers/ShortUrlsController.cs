@@ -69,7 +69,7 @@ namespace UrlShortnerApi.Controllers
         public string ShortUrl()
         {
             ulong counter = Zookeeper.Counter;
-            var s = "012345689abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".ToArray();
+            var s = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".ToArray();
             string hash_str = "";
             while (counter > 0)
             {
