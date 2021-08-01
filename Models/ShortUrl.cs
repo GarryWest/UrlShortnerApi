@@ -9,6 +9,7 @@ namespace UrlShortnerApi.Models
         /// </summary>
         public string ShortUrlId { get; set; }
         public string LongUrl { get; set; }
+        public string ApiDevKey { get; set; }
         public DateTime CreateDate { get; set; }
     }
 }

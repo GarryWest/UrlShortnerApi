@@ -8,7 +8,7 @@ using UrlShortnerApi.Models;
 
 namespace UrlShortnerApi.Controllers
 {
-    [Route("x")]
+    [Route("")]
     [ApiController]
     public class ShortUrlsController : ControllerBase
     {
@@ -19,54 +19,68 @@ namespace UrlShortnerApi.Controllers
             _context = context;
         }
 
-        // GET: x
+        // TODO: Hide this
+        //GET: /
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ShortUrl>>> GetShortUrls()
         {
             return await _context.ShortUrls.ToListAsync();
         }
 
-        // GET: x/5
+        // GET: /5
         [HttpGet("{id}")]
         public async Task<ActionResult<ShortUrl>> GetShortUrl(string id)
         {
             string requestShortUrl = Microsoft.AspNetCore.Http.Extensions.UriHelper.GetEncodedUrl(Request);
-            var ShortUrl = await _context.ShortUrls.FindAsync(requestShortUrl);
+            var ShortUrl = await _context.ShortUrls.FindAsync(id);
 
             if (ShortUrl == null)
             {
                 return NotFound();
             }
 
-            return ShortUrl;
+            //return ShortUrl;
+            return Redirect(ShortUrl.LongUrl);
         }
 
-        // POST: x
+        // POST: /addurl
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Route("addurl")]
         [HttpPost]
         public async Task<ActionResult<string>> PostShortUrl(ShortUrl shortUrl)
         {
-            var existUrl = await _context.ShortUrls.FirstOrDefaultAsync(m => m.LongUrl == shortUrl.LongUrl);
-            if (existUrl == null) {
-                ShortUrl newUrl = new() { ShortUrlId = ShortUrl(), LongUrl = shortUrl.LongUrl, CreateDate = DateTime.Now };
-                _context.ShortUrls.Add(newUrl);
-                try
-                {
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateException)
-                {
+            bool isValidApiDevKey = true;
+            // TODO: Validate API Key
+            if (isValidApiDevKey) {
+                var existUrl = await _context.ShortUrls.FirstOrDefaultAsync(m => m.LongUrl == shortUrl.LongUrl);
+                if (existUrl == null) {
+                    ShortUrl newUrl = new() { ShortUrlId = GetShortUrlId(), LongUrl = shortUrl.LongUrl, ApiDevKey = shortUrl.ApiDevKey, CreateDate = DateTime.Now };
+                    _context.ShortUrls.Add(newUrl);
+                    try
+                    {
+                        await _context.SaveChangesAsync();
+                    }
+                    catch (DbUpdateException)
+                    {
                         throw;
+                    }
+                    string returnShortUrl = $"{Request.Scheme}://{Request.Host}/{newUrl.ShortUrlId}";
+                    return CreatedAtAction(nameof(GetShortUrl), new { id = newUrl.ShortUrlId }, 
+                        new ReturnShortUrl {ShortUrl = returnShortUrl });
+                } else
+                {
+                    string returnShortUrl = $"{Request.Scheme}://{Request.Host}/{existUrl.ShortUrlId}";
+                    return AcceptedAtAction(nameof(GetShortUrl), new { id = existUrl.ShortUrlId },
+                        new ReturnShortUrl { ShortUrl = returnShortUrl });
                 }
-                return CreatedAtAction(nameof(GetShortUrl), new { id = newUrl.ShortUrlId }, newUrl);
             } else
             {
-                return AcceptedAtAction(nameof(GetShortUrl), new { id = existUrl.ShortUrlId }, existUrl);
+                return Unauthorized();
             }
             
         }
 
-        public string ShortUrl()
+        public string GetShortUrlId()
         {
             ulong counter = Zookeeper.Counter;
             var s = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".ToArray();
@@ -76,8 +90,8 @@ namespace UrlShortnerApi.Controllers
                 hash_str = s[counter % 62] + hash_str;
                 counter /= 62;
             }
-            string shortUrl = Microsoft.AspNetCore.Http.Extensions.UriHelper.GetEncodedUrl(Request);
-            return shortUrl + "/" + hash_str;
+            
+            return hash_str;
         }
     }
 }
